@@ -1,0 +1,6 @@
+timestamp,cpu_pct,net_bytes,file_access_count,file_path
+2025-11-01T12:00:00Z,12.5,1024,1,data/sample_file_1.txt
+2025-11-01T12:00:01Z,14.0,2048,2,data/sample_file_2.txt
+2025-11-01T12:00:02Z,90.0,1048576,50,data/malicious.exe
+2025-11-01T12:00:03Z,13.2,512,1,data/sample_file_3.txt
+2025-11-01T12:00:04Z,11.1,256,0,data/sample_file_4.txt
