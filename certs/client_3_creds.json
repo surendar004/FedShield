@@ -1,6 +1,6 @@
 {
   "client_id": 3,
-  "issued_at": "2025-11-13T23:30:55.407283",
-  "expires_at": "2026-11-13T23:30:55.407283",
+  "issued_at": "2025-11-13T23:46:05.398408",
+  "expires_at": "2026-11-13T23:46:05.398408",
   "public_key_path": "client_3_public.pem"
 }

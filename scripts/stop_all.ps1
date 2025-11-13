@@ -3,7 +3,6 @@
 
 $ErrorActionPreference = "Stop"
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Split-Path -Parent $scriptPath
 
 Write-Host "Starting FedShield cleanup process..."
 

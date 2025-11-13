@@ -34,10 +34,10 @@ class ThreatDetectionModel:
         self.random_state = random_state
         
         # Model components
-        self.model = None
-        self.scaler = StandardScaler()
-        self.is_fitted = False
-        self.classes_ = np.array([0, 1, 2, 3, 4, 5])  # 6 threat classes
+        self.model: Optional[MLPClassifier] = None
+        self.scaler: StandardScaler = StandardScaler()
+        self.is_fitted: bool = False
+        self.classes_: np.ndarray = np.array([0, 1, 2, 3, 4, 5])  # 6 threat classes
     
     def build(self):
         """Build the MLP model."""
@@ -51,7 +51,7 @@ class ThreatDetectionModel:
             n_iter_no_change=10,
             solver='adam',
             batch_size=32,
-            verbose=0
+            verbose=False
         )
         logger.info(f"Built model with layers: {self.hidden_layers}")
     
@@ -219,34 +219,40 @@ class ThreatDetectionModel:
         self.scaler = StandardScaler()
         X_scaled = self.scaler.fit_transform(X)
 
-        # Temporarily adjust learning rate and max_iter if requested
-        orig_lr = getattr(self.model, 'learning_rate_init', None)
-        orig_max_iter = getattr(self.model, 'max_iter', None)
-
-        if learning_rate is not None:
-            try:
-                self.model.learning_rate_init = learning_rate
-            except Exception:
-                # sklearn MLPClassifier may not expose direct setter for some versions
-                pass
+        # Get current hyperparameters using getattr for safety
+        if self.model is None:
+            self.build()
+        
+        assert self.model is not None, "Model must be built before personalization"
+        
+        # Create a temporary copy with adjusted parameters if needed
+        if learning_rate is not None or epochs > 0:
+            # Save original config
+            orig_config = {
+                'learning_rate_init': getattr(self.model, 'learning_rate_init', 0.001),
+                'max_iter': getattr(self.model, 'max_iter', 100)
+            }
+            
+            # Create new model with adjusted parameters
+            new_max_iter = epochs if epochs > 0 else orig_config['max_iter']
+            new_lr = learning_rate if learning_rate is not None else orig_config['learning_rate_init']
+            
+            self.model = MLPClassifier(
+                hidden_layer_sizes=self.hidden_layers,
+                learning_rate_init=new_lr,
+                max_iter=new_max_iter,
+                random_state=self.random_state,
+                early_stopping=True,
+                validation_fraction=0.1,
+                n_iter_no_change=10,
+                solver='adam',
+                batch_size=32,
+                verbose=False
+            )
 
         # Run a short training session for personalization
-        try:
-            self.model.max_iter = epochs if epochs > 0 else self.model.max_iter
-            self.model.fit(X_scaled, y)
-            self.is_fitted = True
-        finally:
-            # Restore original hyperparameters when possible
-            if orig_lr is not None:
-                try:
-                    self.model.learning_rate_init = orig_lr
-                except Exception:
-                    pass
-            if orig_max_iter is not None:
-                try:
-                    self.model.max_iter = orig_max_iter
-                except Exception:
-                    pass
+        self.model.fit(X_scaled, y)
+        self.is_fitted = True
 
         acc = self.model.score(X_scaled, y)
         logger.info(f"Personalization accuracy: {acc:.4f} (epochs={epochs})")
