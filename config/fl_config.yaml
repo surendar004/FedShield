@@ -1,0 +1,42 @@
+num_rounds: 10
+clients_per_round: 3
+local_epochs: 5
+learning_rate: 0.001
+batch_size: 32
+clip_norm: 1.0
+dp_epsilon: 1.0
+dp_delta: 1e-5
+model_architecture: [128, 64, 32]
+seed: 42
+
+# Non-IID simulation parameters
+data_distribution:
+  strategy: "skewed"  # Options: "iid", "skewed", "feature_scarcity", "temporal_drift"
+  imbalance_factor: 0.8  # How skewed the distribution is
+  
+# Privacy parameters
+privacy:
+  use_differential_privacy: true
+  epsilon: 1.0
+  delta: 1e-5
+  clip_norm: 1.0
+  
+# Security parameters
+security:
+  use_tls: true
+  secure_aggregation: true
+  client_authentication: true
+  
+# Monitoring & logging
+monitoring:
+  log_level: "INFO"
+  track_gradient_norm: true
+  track_client_drift: true
+  anomaly_threshold: 3.0  # Std devs above mean
+  
+# Evaluation
+evaluation:
+  holdout_test_set: true
+  test_set_fraction: 0.2
+  per_client_validation: true
+  metrics: ["accuracy", "precision", "recall", "f1", "roc_auc"]

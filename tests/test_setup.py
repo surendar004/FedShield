@@ -23,8 +23,10 @@ def test_python_environment():
         'flwr'
     ]
     
-    import pkg_resources
-    installed_packages = {pkg.key for pkg in pkg_resources.working_set}
+    from importlib.metadata import distribution, PackageNotFoundError
     
     for package in required_packages:
-        assert package in installed_packages, f"{package} is not installed"
+        try:
+            distribution(package)
+        except PackageNotFoundError:
+            assert False, f"{package} is not installed"
