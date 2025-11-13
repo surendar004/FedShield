@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import json
 import os
+import requests
 from pathlib import Path
 
 # Page configuration
@@ -60,9 +61,9 @@ def generate_sample_experiment_data(num_rounds: int = 20, num_clients: int = 20)
         "global_loss": (0.30 - np.cumsum(np.random.rand(num_rounds) * 0.010)).tolist(),
         "avg_client_accuracy": (0.68 + np.cumsum(np.random.rand(num_rounds) * 0.012)).tolist(),
         "convergence_rate": np.random.rand(num_rounds).tolist(),
-        "clients_participated": [num_clients - np.random.randint(0, 3) for _ in range(num_rounds)],
+        "clients_participated": [int(num_clients - np.random.randint(0, 3)) for _ in range(num_rounds)],
         "epsilon_consumed": (np.cumsum(np.random.rand(num_rounds) * 0.05)).tolist(),
-        "communication_mb": np.random.rand(num_rounds).tolist() * 5 + 2,
+        "communication_mb": (np.random.rand(num_rounds) * 5 + 2).tolist(),
     }
     
     # Per-client metrics
@@ -364,6 +365,57 @@ def render_client_distribution(data: Dict):
         st.plotly_chart(fig, use_container_width=True)
 
 
+def render_threats_and_risk(logs: List[Dict], data: Dict):
+    """Render recent threats and per-client risk status using logs from API or sample data."""
+    st.markdown('<div class="subheader">Threats Detected & Client Risk</div>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns([2, 3])
+
+    with col1:
+        st.markdown('**Recent Threats**')
+        if not logs:
+            st.info('No threat reports available')
+        else:
+            # Show most recent 10 threats
+            recent = sorted(logs, key=lambda x: x.get('received_at', ''), reverse=True)[:10]
+            for t in recent:
+                ts = t.get('received_at', 'N/A')
+                cid = t.get('client_id', 'unknown')
+                desc = t.get('description', t.get('type', 'suspicious'))
+                is_threat = t.get('is_threat', False)
+                status = 'THREAT' if is_threat else 'suspicious'
+                st.write(f"- [{ts}] Client={cid} — {status} — {desc}")
+
+    with col2:
+        st.markdown('**Client Risk Summary**')
+        # Build per-client threat counts from logs
+        client_counts = {}
+        for entry in logs:
+            cid = entry.get('client_id') or 'unknown'
+            client_counts.setdefault(cid, {'threats': 0, 'events': 0})
+            client_counts[cid]['events'] += 1
+            if entry.get('is_threat'):
+                client_counts[cid]['threats'] += 1
+
+        # Merge with data['client_metrics'] to show accuracy and samples if available
+        rows = []
+        for cid, stats in client_counts.items():
+            final_acc = None
+            samples = None
+            if data and 'client_metrics' in data and cid in data['client_metrics']:
+                cm = data['client_metrics'][cid]
+                final_acc = f"{cm.get('final_accuracy', 0):.4f}"
+                samples = cm.get('samples')
+            risk_level = 'HIGH' if stats['threats'] > 0 else ('MEDIUM' if stats['events'] > 0 else 'LOW')
+            rows.append({'Client': cid, 'Threats': stats['threats'], 'Events': stats['events'], 'Risk': risk_level, 'Final Accuracy': final_acc or '-', 'Samples': samples or '-'})
+
+        if rows:
+            df_risk = pd.DataFrame(rows).sort_values(['Risk', 'Threats'], ascending=[False, False])
+            st.dataframe(df_risk, use_container_width=True)
+        else:
+            st.info('No client events found to compute risk')
+
+
 def render_algorithm_comparison(data: Dict):
     """Render algorithm comparison metrics."""
     st.markdown('<div class="subheader">Algorithm Configuration</div>', unsafe_allow_html=True)
@@ -496,10 +548,11 @@ def main():
     # Data source selection
     data_source = st.sidebar.radio(
         "Data Source",
-        ["Sample Data", "MLflow Backend", "CSV File"]
+        ["Sample Data", "MLflow Backend", "CSV File", "Live API"]
     )
     
     # Generate or load data
+    logs = []
     if data_source == "Sample Data":
         num_rounds = st.sidebar.slider("Number of Rounds", 5, 100, 20)
         num_clients = st.sidebar.slider("Number of Clients", 5, 100, 20)
@@ -518,6 +571,31 @@ def main():
             data = generate_sample_experiment_data(20, 20)  # Fallback
         else:
             data = generate_sample_experiment_data(20, 20)
+
+    if data_source == "Live API":
+        api_base = st.sidebar.text_input('API Base URL', 'http://localhost:5000')
+        st.sidebar.write('Fetching live data from API...')
+        try:
+            r = requests.get(f"{api_base}/api/threats", timeout=3)
+            if r.status_code == 200:
+                logs = r.json().get('data', [])
+            else:
+                st.sidebar.error(f"Failed to fetch threats: {r.status_code}")
+        except Exception as e:
+            st.sidebar.error(f"Could not reach API: {e}")
+
+        try:
+            r2 = requests.get(f"{api_base}/api/system_summary", timeout=3)
+            if r2.status_code == 200:
+                summary = r2.json()
+                # attach summary metrics to data for display if needed
+                # keep data as sample but adjust rounds to summary total_events as a hint
+                data = generate_sample_experiment_data(20, 20)
+                data['system_summary'] = summary
+            else:
+                st.sidebar.warning('System summary not available')
+        except Exception:
+            st.sidebar.warning('Could not fetch system summary from API')
     
     # Dashboard sections
     render_header()
@@ -537,6 +615,7 @@ def main():
         render_client_participation(data)
     
     with tab2:
+        render_threats_and_risk(logs, data)
         render_client_distribution(data)
         render_client_details_table(data)
     

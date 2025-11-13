@@ -1,3 +1,26 @@
+FedShield — Main aim
+
+FedShield in simple words:
+
+FedShield is a system that helps multiple computers or organizations work together to detect cyber threats without sharing their private data.
+
+Each device checks for suspicious activity on its own, then sends only safe, non-sensitive learning updates to a central server. The server combines these updates to build a smarter global threat-detection model.
+
+This model is sent back to all devices, so everyone gets better security, but no one’s personal data is exposed.
+
+The dashboard simply shows:
+
+Threats detected
+
+Which clients are safe or at risk
+
+Overall security status
+
+In short:
+FedShield helps everyone stay safer together, without sharing their actual data.
+
+this what main aim of this project
+dont vhange the theme and do the needfull
 # FedShield — Federated Threat Isolation & Detection System
 
 Overview
