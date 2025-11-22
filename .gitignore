@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+
+# Virtual Environments
+env/
+venv/
+.venv/
+fedshield_env/
+fedshield_env_312/
+FedShield/fedshield_env/
+FedShield/fedshield_env_312/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs and runtime data
+logs/
+**/logs/
+*.log
+*.out
+*.err
+client/logs/
+server/logs/
+FedShield/logs/
+FedShield/client/logs/
+FedShield/server/logs/
+
+# Server data
+server/global_logs.json
+server/global_logs.json.bak
+server/models/
+client/local_model.pkl
+tmp_*.json
+*.pkl
+
+# Data that shouldn't be versioned
+data/quarantined/
+**/quarantined/
+*.csv.bak
+
+# Streamlit cache
+.streamlit/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# PID files
+*.pid
+pids.json
+flask_pid.tmp
+
+# Environment variables
+.env
+.env.local
+
+# IDE specific
+.vscode/
+.idea/
+*.code-workspace
+

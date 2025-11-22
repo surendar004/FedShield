@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+
+# Environments
+env/
+venv/
+.venv/
+FedShield/fedshield_env/
+fedshield_env/
+fedshield_env_312/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and runtime data
+logs/
+client/logs/
+server/global_logs.json
+server/models/
+client/local_model.pkl
+
+# Data that shouldn't be versioned
+data/quarantined/
+**/quarantined/
+
+# Streamlit cache
+.streamlit/
+
+# Jupyter
+.ipynb_checkpoints/
+
