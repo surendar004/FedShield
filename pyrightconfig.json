@@ -1,0 +1,19 @@
+{
+  "typeCheckingMode": "basic",
+  "diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
+    "reportMissingTypeStubs": "none",
+    "reportOptionalMemberAccess": "warning",
+    "reportOptionalSubscript": "warning",
+    "reportPrivateUsage": "none",
+    "reportGeneralTypeIssues": "warning",
+    "reportArgumentType": "warning"
+  },
+  "ignore": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "venv/**"
+  ]
+}

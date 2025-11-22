@@ -70,3 +70,5 @@ flask_pid.tmp
 .idea/
 *.code-workspace
 
+# MLflow
+mlruns/
